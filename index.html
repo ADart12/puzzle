@@ -1,342 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>15-Puzzle Game</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-        .game-info {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 20px;
-        }
-        .puzzle-container {
-            display: grid;
-            grid-template-columns: repeat(4, 80px);
-            grid-template-rows: repeat(4, 80px);
-            gap: 5px;
-            background-color: #333;
-            padding: 5px;
-            border-radius: 5px;
-        }
-        .tile {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #fff;
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-            border-radius: 3px;
-            cursor: pointer;
-            transition: transform 0.2s, background-color 0.2s;
-        }
-        .tile:hover {
-            background-color: #e0e0e0;
-            transform: scale(1.02);
-        }
-        .empty {
-            background-color: transparent;
-            cursor: default;
-        }
-        .empty:hover {
-            background-color: transparent;
-            transform: none;
-        }
-        .controls {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-        }
-        button {
-            padding: 8px 16px;
-            font-size: 16px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .moves, .timer {
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .game-over {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            z-index: 100;
-        }
-        .game-over-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-        }
-        .time-up {
-            font-size: 24px;
-            color: #e74c3c;
-            margin-bottom: 20px;
-        }
-        #restart-btn {
-            background-color: #e74c3c;
-        }
-        #restart-btn:hover {
-            background-color: #c0392b;
-        }
-        .timer-idle {
-            color: #777;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Math Puzzle Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      padding: 2rem;
+      text-align: center;
+    }
+    h2 {
+      color: #333;
+    }
+    .equations {
+      margin-bottom: 1.5rem;
+      font-size: 1.3rem;
+    }
+    input {
+      padding: 0.6rem;
+      margin: 0.5rem;
+      width: 100px;
+      font-size: 1rem;
+    }
+    button {
+      padding: 0.6rem 1.2rem;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+  </style>
 </head>
 <body>
-    <h1>15-Puzzle Game</h1>
-    <div class="game-info">
-        <div class="moves">Moves: <span id="move-counter">0</span></div>
-        <div class="timer timer-idle">Time: <span id="time-display">03:00</span></div>
-    </div>
-    <div class="puzzle-container" id="puzzle"></div>
-    <div class="controls">
-        <button id="shuffle-btn">Shuffle</button>
-    </div>
 
-    <div class="game-over" id="game-over">
-        <div class="game-over-content">
-            <div class="time-up">TIME'S UP!</div>
-            <p>You didn't complete the puzzle in time.</p>
-            <button id="restart-btn">Restart Game</button>
-        </div>
-    </div>
+  <h2>📐 Solve the Puzzle</h2>
+  <div class="equations">
+    <p>1) 2x + 3y = 14</p>
+    <p>2) 3x - y = 10</p>
+  </div>
 
-    <script>
-        const puzzleContainer = document.getElementById('puzzle');
-        const moveCounter = document.getElementById('move-counter');
-        const timeDisplay = document.getElementById('time-display');
-        const timerElement = document.querySelector('.timer');
-        const shuffleBtn = document.getElementById('shuffle-btn');
-        const gameOverScreen = document.getElementById('game-over');
-        const restartBtn = document.getElementById('restart-btn');
-        
-        let board = [];
-        let emptyPos = { row: 3, col: 3 };
-        let moves = 0;
-        let timeLeft = 180; // 3 minutes in seconds
-        let timer;
-        let gameActive = true;
-        let timerStarted = false;
-        
-        // Initialize the game with shuffled board
-        function initGame() {
-            // Create solved board first
-            board = [];
-            let value = 1;
-            for (let row = 0; row < 4; row++) {
-                board[row] = [];
-                for (let col = 0; col < 4; col++) {
-                    if (row === 3 && col === 3) {
-                        board[row][col] = 0; // Empty space
-                    } else {
-                        board[row][col] = value++;
-                    }
-                }
-            }
-            
-            emptyPos = { row: 3, col: 3 };
-            moves = 0;
-            timeLeft = 300;
-            gameActive = true;
-            timerStarted = false;
-            
-            // Clear any existing timer
-            clearInterval(timer);
-            
-            // Reset timer display
-            updateTimeDisplay();
-            timerElement.classList.add('timer-idle');
-            
-            // Shuffle immediately
-            shuffleBoard();
-        }
-        
-        // Start the countdown timer
-        function startTimer() {
-            if (timerStarted) return;
-            
-            timerStarted = true;
-            timerElement.classList.remove('timer-idle');
-            updateTimeDisplay();
-            timer = setInterval(() => {
-                timeLeft--;
-                updateTimeDisplay();
-                
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    endGame();
-                }
-            }, 1000);
-        }
-        
-        // Update the time display
-        function updateTimeDisplay() {
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            // Make timer red when less than 30 seconds remain
-            if (timeLeft <= 30) {
-                timerElement.style.color = '#e74c3c';
-            } else {
-                timerElement.style.color = '';
-            }
-        }
-        
-        // End the game (time's up)
-        function endGame() {
-            gameActive = false;
-            gameOverScreen.style.display = 'flex';
-        }
-        
-        // Shuffle the board
-        function shuffleBoard() {
-            // Perform random moves to shuffle
-            const shuffleMoves = 200;
-            let directions = [
-                { row: -1, col: 0 }, // up
-                { row: 1, col: 0 },  // down
-                { row: 0, col: -1 }, // left
-                { row: 0, col: 1 }   // right
-            ];
-            
-            for (let i = 0; i < shuffleMoves; i++) {
-                const validMoves = directions.filter(dir => {
-                    const newRow = emptyPos.row + dir.row;
-                    const newCol = emptyPos.col + dir.col;
-                    return newRow >= 0 && newRow < 4 && newCol >= 0 && newCol < 4;
-                });
-                
-                if (validMoves.length > 0) {
-                    const randomDir = validMoves[Math.floor(Math.random() * validMoves.length)];
-                    const tileRow = emptyPos.row + randomDir.row;
-                    const tileCol = emptyPos.col + randomDir.col;
-                    
-                    // Swap tile with empty space
-                    board[emptyPos.row][emptyPos.col] = board[tileRow][tileCol];
-                    board[tileRow][tileCol] = 0;
-                    emptyPos = { row: tileRow, col: tileCol };
-                }
-            }
-            
-            moves = 0;
-            updateMoveCounter();
-            renderBoard();
-        }
-        
-        // Render the board
-        function renderBoard() {
-            puzzleContainer.innerHTML = '';
-            
-            for (let row = 0; row < 4; row++) {
-                for (let col = 0; col < 4; col++) {
-                    const value = board[row][col];
-                    const tile = document.createElement('div');
-                    tile.className = value === 0 ? 'tile empty' : 'tile';
-                    tile.textContent = value === 0 ? '' : value;
-                    tile.dataset.row = row;
-                    tile.dataset.col = col;
-                    
-                    if (value !== 0 && gameActive) {
-                        tile.addEventListener('click', () => handleTileClick(row, col));
-                    }
-                    
-                    puzzleContainer.appendChild(tile);
-                }
-            }
-        }
-        
-        // Handle tile click
-        function handleTileClick(row, col) {
-            if (!gameActive) return;
-            
-            // Start timer on first move
-            if (!timerStarted) {
-                startTimer();
-            }
-            
-            // Check if tile is adjacent to empty space
-            if (
-                (Math.abs(row - emptyPos.row) === 1 && col === emptyPos.col) ||
-                (Math.abs(col - emptyPos.col) === 1 && row === emptyPos.row)
-            ) {
-                // Move tile to empty space
-                board[emptyPos.row][emptyPos.col] = board[row][col];
-                board[row][col] = 0;
-                emptyPos = { row, col };
-                moves++;
-                updateMoveCounter();
-                renderBoard();
-                checkWin();
-            }
-        }
-        
-        // Update move counter
-        function updateMoveCounter() {
-            moveCounter.textContent = moves;
-        }
-        
-        // Check if the player has won
-        function checkWin() {
-            let value = 1;
-            for (let row = 0; row < 4; row++) {
-                for (let col = 0; col < 4; col++) {
-                    if (row === 3 && col === 3) {
-                        if (board[row][col] !== 0) return false;
-                    } else {
-                        if (board[row][col] !== value++) return false;
-                    }
-                }
-            }
-            
-            clearInterval(timer);
-            gameActive = false;
-            
-            setTimeout(() => {
-                alert(`Congratulations! Moves: ${moves} Your Letter is V`);
-                initGame(); // Restart game after win
-            }, 100);
-        }
-        
-        // Event listeners
-        shuffleBtn.addEventListener('click', shuffleBoard);
-        restartBtn.addEventListener('click', () => {
-            gameOverScreen.style.display = 'none';
-            initGame();
-        });
-        
-        // Start the game with shuffled board
-        initGame();
-    </script>
+  <p>Enter your answer below:</p>
+  <input type="number" id="x" placeholder="Value of x" />
+  <input type="number" id="y" placeholder="Value of y" />
+  <br />
+  <button onclick="checkAnswer()">Submit</button>
+
+  <script>
+    function checkAnswer() {
+      const x = parseFloat(document.getElementById("x").value);
+      const y = parseFloat(document.getElementById("y").value);
+
+      // Check both equations
+      const eq1 = 2 * x + 3 * y;
+      const eq2 = 3 * x - y;
+
+      if (eq1 === 14 && eq2 === 10) {
+        alert("✅ Correct! Your letter is: U");
+      } else {
+        alert("❌ Try again!");
+      }
+    }
+  </script>
+
 </body>
 </html>
